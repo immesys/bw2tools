@@ -16,14 +16,38 @@ func main() {
 	if err != nil {
 		bail(err)
 	}
-	err = cl.SetEntityFile("eve.key")
+	fmt.Println("connected")
+	us, err := cl.SetEntityFile("eve.key")
 	if err != nil {
 		bail(err)
 	}
+	fmt.Println("entity set: ", us)
+	uri := "michael.bw2.io/ex/5/*"
+
+	//Build a chain
+	rc, err := cl.BuildChain(uri, "C*", us)
+	if err != nil {
+		bail(err)
+	}
+	fmt.Println("BC returned")
+	pac := ""
+	for chain := range rc {
+		fmt.Printf("Got chain: %v", chain.Hash)
+		pac = chain.Hash
+	}
+	fmt.Println("chain build rv")
+	if pac == "" {
+		bail("Could not find a PAC")
+	}
+	//Subscribe
 	msgchan, err := cl.Subscribe(&bw2bind.SubscribeParams{
-		URI:                "castle.bw2.io/ex/baz",
-		PrimaryAccessChain: "a6AYZos9UZClIJ-rD5Azrmij64qbT0q8xbGSRmhqKrU=",
+		URI:                uri,
+		PrimaryAccessChain: pac,
 	})
+	if err != nil {
+		bail(err)
+	}
+
 	fmt.Println("subscribe finished")
 	if err != nil {
 		bail(err)

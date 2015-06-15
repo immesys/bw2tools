@@ -17,17 +17,25 @@ func main() {
 	if err != nil {
 		bail(err)
 	}
-	err = cl.SetEntityFile("ex2.key")
+	us, err := cl.SetEntityFile("ex2.key")
 	if err != nil {
 		bail(err)
 	}
+	uri := "castle.bw2.io/ex/baz"
+	pac, _ := cl.BuildAnyChain(uri, "P", us)
+	if pac == nil {
+		fmt.Println("Could not get permissions")
+		os.Exit(1)
+	}
+
 	for {
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Print(">")
 		text, _ := reader.ReadString('\n')
 		err = cl.Publish(&bw.PublishParams{
-			URI:                "castle.bw2.io/ex/baz",
-			PrimaryAccessChain: "fVpZ4fEJZuPYEjUTOXqg7Xon9rvzss6ZyeyE-ZsyJZ0=",
+			URI:                uri,
+			PrimaryAccessChain: pac.Hash,
+			DoVerify:           true,
 			PayloadObjects:     []bw.PayloadObject{bw.CreateStringPayloadObject(text)},
 		})
 		if err != nil {
